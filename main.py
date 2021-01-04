@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.fft import fft, fftfreq
 
 # References
 # https://blogs.zhinst.com/mehdia/2019/11/25/how-to-generate-qam-signaling-with-the-hdawg-arbitrary-waveform-generator/
@@ -8,8 +9,10 @@ class Defines:
 
     # Sampling frequency
     FS = 100E9
+
     # Number of samples
     N_SAMPLES = 1000
+
 
 def export_as_pwl(name, time, amplitude):
     file = open(name,"w")
@@ -34,6 +37,17 @@ def generate_QAM_signal(carrier_frequency, depth, symbol_duration):
 
     return [time, s_t]
 
+
+def fft_of(signal):
+
+    n = len(signal)
+    f_amplitude = fft(signal)
+    frequency = fftfreq(n, 1/Defines.FS)[:n// 2]
+
+    h_amplitude = 2.0 / n * np.abs(f_amplitude[0:n // 2])
+
+    return [frequency, h_amplitude]
+
 def generate_QAM_symbols(depth, symbol_duration):
 
     M = depth
@@ -56,14 +70,10 @@ def generate_QAM_symbols(depth, symbol_duration):
 # Generates a sine wave
 # Inputs: frequency (Hz), phase (rad/s), offset (V), amplitude (V), size (amount of samples)
 def generate_sine_wave(frequency, phase, offset, amplitude, size):
-    local_frequency = frequency
-    DC = offset
-    AMP = amplitude
-
-    w = 2 * np.pi * local_frequency
+    w = 2 * np.pi * frequency
     x = np.arange(size)
 
-    y = DC + AMP*np.sin(w * x / Defines.FS + phase)
+    y = offset + amplitude*np.sin(w * x / Defines.FS + phase)
 
     return [x, y]
 
@@ -76,9 +86,12 @@ if __name__ == "__main__":
     carrier_frequency = 2.4E9
     symbol_duration = 3.6/(1E6)
 
-    [time, s_t] = generate_QAM_signal(carrier_frequency, 4, symbol_duration)
+    [time, s_t] = generate_QAM_signal(carrier_frequency, 2, symbol_duration)
     plt.plot(time, s_t)
-
-    export_as_pwl("modulated.txt", time, s_t)
-
     plt.show()
+
+    [frequency, h_amplitude] = fft_of(s_t)
+
+    plt.plot(frequency, h_amplitude)
+    plt.show()
+
