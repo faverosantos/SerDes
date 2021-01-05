@@ -121,63 +121,60 @@ def generate_sine_wave(frequency, phase, offset, amplitude, size):
 
 def generate_eye_diagram(data, bit_duration):
 
-    level = 0
-    previous_level = 0
-    rising_index = 0
-    falling_index = 0
-    THRESHOLD = 0.5
+    buffer = np.zeros((int(len(data)/bit_duration), bit_duration))
+    eye = np.zeros((int(len(data) / bit_duration), 3*bit_duration))
 
-    for i in range(len(data)):
-        level = data[i]
-        if i == 0:
-            previous_level = level
+    j = 0
 
-        if level > previous_level + THRESHOLD: # rising edge
-            rising_index = i
+    for i in range(0, len(data), bit_duration):
+        buffer[j, 0:bit_duration] = data[i:bit_duration+j*bit_duration]
+        bit_value = buffer[j, bit_duration-1] #np.ceil(np.average(buffer[j, 0:bit_duration]))
 
-        elif level < previous_level - THRESHOLD: #falling edge
-            falling_index = i
+        eye[j, 0:bit_duration] = not bit_value
+        eye[j, bit_duration:2*bit_duration] = buffer[j, 0:bit_duration]
+        eye[j, 2*bit_duration:3 * bit_duration] = not bit_value
 
-
-        #TODO continuar aqui, tem que preencher o buffer com as amostras corretas
-        if rising_index != falling_index:
-            eye[i, 0:bit_duration] = not bit_value
-            eye[i, bit_duration:2*bit_duration] = buffer[j, 0:bit_duration]
-            eye[i, 2*bit_duration:3 * bit_duration] = not bit_value
-
-        previous_level = level
-
-
-
-
-    #buffer = np.zeros((int(len(data)/bit_duration), bit_duration))
-    #eye = np.zeros((int(len(data) / bit_duration), 3*bit_duration))
-
-    #j = 0
-
-    #for i in range(0, len(data), bit_duration):
-    #    buffer[j, 0:bit_duration] = data[i:bit_duration+j*bit_duration]
-    #    bit_value = buffer[j, bit_duration-1] #np.ceil(np.average(buffer[j, 0:bit_duration]))
-
-    #    eye[j, 0:bit_duration] = not bit_value
-    #    eye[j, bit_duration:2*bit_duration] = buffer[j, 0:bit_duration]
-    #    eye[j, 2*bit_duration:3 * bit_duration] = not bit_value
-
-    #    j = j + 1
+        j = j + 1
 
     return eye
 
-def generate_random_word(size, bit_duration):
-
-    #word = np.concatenate([np.zeros(size), np.ones(size)])
+def generate_random_word(size, bit_duration, n_rise, n_fall):
 
     word = []
+    bit_vector = np.zeros(int(bit_duration))
+    inc_rate = 1/n_rise
+    dec_rate = 1/n_fall
+    previous_bit = 0
+    bit = 0
+    j = 1
 
-    for i in range(size):
+    for k in range(size):
         bit = random.randint(2)
-        bit_vector = np.ones(int(bit_duration)) * bit
 
+        if previous_bit == bit:
+            bit_vector = np.ones(int(bit_duration)) * bit
+
+        elif bit > previous_bit: #rising
+            for i in range(0, bit_duration):
+                if i < n_rise:
+                    bit_vector[i] = j*inc_rate
+                    j += 1
+                else:
+                    bit_vector[i] = bit
+
+        elif bit < previous_bit: #falling
+            for i in range(0, bit_duration):
+                if i < n_fall:
+                    bit_vector[i] = 1 - j*dec_rate
+                    j += 1
+                else:
+                    bit_vector[i] = bit
+
+
+        previous_bit = bit
+        j = 1
         word = [*word, *bit_vector]
+        bit_vector = np.zeros(int(bit_duration))
 
 
 
@@ -202,13 +199,16 @@ if __name__ == "__main__":
     #plt.plot(vin)
     #vout = channel_model(vin, 50, 10)
 
-    BIT_DURATION = 10
-    word = generate_random_word(10, BIT_DURATION)
+    BIT_DURATION = 20
+    N_RISE = 5
+    N_FALL = 5
+    word = generate_random_word(20, BIT_DURATION, N_RISE, N_FALL)
     plt.plot(word)
+    plt.show()
 
-    NOISE_LEVEL = 0.01
-    SKEW_LEVEL = BIT_DURATION/2
-    vout = channel_model(word, 20, 0.1, NOISE_LEVEL, SKEW_LEVEL)
+    NOISE_LEVEL = 0.05
+    SKEW_LEVEL = BIT_DURATION/10
+    vout = channel_model(word, 10, 0.3, NOISE_LEVEL, 0)
     plt.plot(vout)
     plt.show()
 
