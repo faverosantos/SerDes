@@ -54,13 +54,9 @@ def channel_model(vin, R, C, noise_level, skew_level):
         for i in range(len(vin)):
             vin[i] += random.uniform(-noise_level, noise_level)
 
-
-
     t = np.arange(1,len(vin)+1)
     tau = R * C
-    #print("tau: " + str(tau))
     ri = (1/tau) * np.exp(- t / tau)
-    #plt.plot(ri)
     vout = np.convolve(ri, vin)
     vout = vout[0:len(vin)]
 
@@ -130,26 +126,82 @@ def generate_eye_diagram(data, bit_duration):
         buffer[j, 0:bit_duration] = data[i:bit_duration+j*bit_duration]
         bit_value = buffer[j, bit_duration-1] #np.ceil(np.average(buffer[j, 0:bit_duration]))
 
-        eye[j, 0:bit_duration] = not bit_value
-        eye[j, bit_duration:2*bit_duration] = buffer[j, 0:bit_duration]
-        eye[j, 2*bit_duration:3 * bit_duration] = not bit_value
+        if j < 2:
+            eye[j, 0 * bit_duration:1 * bit_duration] = buffer[j, 0:bit_duration]
+            eye[j, 1 * bit_duration:2 * bit_duration] = buffer[j, 0:bit_duration]
+            eye[j, 2 * bit_duration:3 * bit_duration] = buffer[j, 0:bit_duration]
+        else:
+            eye[j, 0 * bit_duration:1 * bit_duration] = buffer[j-2, 0:bit_duration]
+            eye[j, 1 * bit_duration:2 * bit_duration] = buffer[j-1, 0:bit_duration]
+            eye[j, 2 * bit_duration:3 * bit_duration] = buffer[j, 0:bit_duration]
 
         j = j + 1
 
     return eye
 
-def generate_random_word(size, bit_duration, n_rise, n_fall):
+
+def add_feed_forward_equalizer(vin, amplitude_precursor, amplitude_poscursor, duration_precursor, duration_poscursor):
+
+    vout = np.zeros(len(vin))
+    present_bit = 0
+    previous_bit = 0
+
+    vin = np.array(vin)
+
+    i = 0
+
+    while i < len(vin):
+        present_bit = vin[i]
+
+        if present_bit > previous_bit:
+            # It is a rising edge, thus, add the precursor
+            vout[i:i + duration_precursor] = present_bit + amplitude_precursor
+            i += duration_precursor - 1
+
+        elif present_bit < previous_bit:
+            # It is a rising edge, thus, add the poscursor
+            vout[i:i + duration_poscursor] = present_bit + amplitude_poscursor
+            i += duration_poscursor - 1
+
+        else:
+            vout[i] = present_bit
+
+        previous_bit = present_bit
+        i += 1
+
+    return vout
+
+def generate_random_word(size, bit_duration, n_rise, n_fall, is_random):
 
     word = []
     bit_vector = np.zeros(int(bit_duration))
-    inc_rate = 1/n_rise
-    dec_rate = 1/n_fall
+
+    if n_rise == 0:
+        inc_rate = 1
+    else:
+        inc_rate = 1/n_rise
+
+    if n_rise == 0:
+        dec_rate = 1
+    else:
+        dec_rate = 1 / n_fall
+
+
     previous_bit = 0
     bit = 0
     j = 1
 
+    fixed_pattern = np.zeros(int(size))
+    for i in range(len(fixed_pattern)):
+        fixed_pattern[i] = bit
+        bit = not bit
+
     for k in range(size):
-        bit = random.randint(2)
+
+        if is_random is True:
+            bit = random.randint(2)
+        elif is_random is False:
+            bit = fixed_pattern[k]
 
         if previous_bit == bit:
             bit_vector = np.ones(int(bit_duration)) * bit
@@ -176,8 +228,6 @@ def generate_random_word(size, bit_duration, n_rise, n_fall):
         word = [*word, *bit_vector]
         bit_vector = np.zeros(int(bit_duration))
 
-
-
     return word
 
 if __name__ == "__main__":
@@ -200,29 +250,33 @@ if __name__ == "__main__":
     #vout = channel_model(vin, 50, 10)
 
     BIT_DURATION = 20
-    N_RISE = 5
-    N_FALL = 5
-    word = generate_random_word(20, BIT_DURATION, N_RISE, N_FALL)
+    N_RISE = 0
+    N_FALL = 0
+    word = generate_random_word(400, BIT_DURATION, N_RISE, N_FALL, False)
     plt.plot(word)
+
+
+    AMP_PRE = 0.2
+    AMP_POS = -AMP_PRE
+    DUR_PRE = 20
+    DUR_POS = 20
+    tx_out = add_feed_forward_equalizer(word, AMP_PRE, AMP_POS, DUR_PRE, DUR_POS)
+    plt.plot(tx_out)
+
+    tx_out = word
+
+    NOISE_LEVEL = 0.2
+    SKEW_LEVEL = BIT_DURATION/8
+    rx_in = channel_model(tx_out, 3, 1, NOISE_LEVEL, SKEW_LEVEL)
+    plt.plot(rx_in)
     plt.show()
 
-    NOISE_LEVEL = 0.05
-    SKEW_LEVEL = BIT_DURATION/10
-    vout = channel_model(word, 10, 0.3, NOISE_LEVEL, 0)
-    plt.plot(vout)
-    plt.show()
-
-
-    eye = generate_eye_diagram(word, BIT_DURATION)
+    eye = generate_eye_diagram(rx_in, BIT_DURATION)
     for i in range(0, len(eye)):
         plt.plot(eye[i,:])
+    plt.ylim(-0.3, 1.2)
     plt.show()
 
-
-    eye = generate_eye_diagram(vout, BIT_DURATION)
-    for i in range(0, len(eye)):
-        plt.plot(eye[i,:])
-    plt.show()
 
 
 
