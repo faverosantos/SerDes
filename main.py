@@ -155,13 +155,20 @@ def add_feed_forward_equalizer(vin, amplitude_precursor, amplitude_poscursor, du
 
         if present_bit > previous_bit:
             # It is a rising edge, thus, add the precursor
+            vout[i - duration_poscursor:i] = amplitude_poscursor
+
             vout[i:i + duration_precursor] = present_bit + amplitude_precursor
             i += duration_precursor - 1
 
         elif present_bit < previous_bit:
             # It is a rising edge, thus, add the poscursor
-            vout[i:i + duration_poscursor] = present_bit + amplitude_poscursor
+            vout[i - duration_precursor:i] = previous_bit - amplitude_poscursor
+
+            vout[i:i + duration_poscursor] = -amplitude_precursor
             i += duration_poscursor - 1
+
+
+
 
         else:
             vout[i] = present_bit
@@ -171,9 +178,15 @@ def add_feed_forward_equalizer(vin, amplitude_precursor, amplitude_poscursor, du
 
     return vout
 
-def generate_random_word(size, bit_duration, n_rise, n_fall, is_random):
 
-    word = []
+# Generates a sequence of bits randomically or not.
+# Inputs: size (size of the stream), bit_duration (number of samples each bit lasts),
+# n_rise (number of samples of the rising edge), n_fall (number of samples of the falling edge),
+# is_random (True to generate a random sequence, False to generate a repetitive 0/1 sequence).
+# Output: sequence (the generated sequence)
+def generate_bitstream(size, bit_duration, n_rise, n_fall, is_random):
+
+    sequence = []
     bit_vector = np.zeros(int(bit_duration))
 
     if n_rise == 0:
@@ -186,49 +199,49 @@ def generate_random_word(size, bit_duration, n_rise, n_fall, is_random):
     else:
         dec_rate = 1 / n_fall
 
-
     previous_bit = 0
-    bit = 0
+    present_bit = 0
     j = 1
 
     fixed_pattern = np.zeros(int(size))
     for i in range(len(fixed_pattern)):
-        fixed_pattern[i] = bit
-        bit = not bit
+        fixed_pattern[i] = present_bit
+        present_bit = not present_bit
 
     for k in range(size):
 
         if is_random is True:
-            bit = random.randint(2)
+            present_bit = random.randint(2)
         elif is_random is False:
-            bit = fixed_pattern[k]
+            present_bit = fixed_pattern[k]
 
-        if previous_bit == bit:
-            bit_vector = np.ones(int(bit_duration)) * bit
+        if previous_bit == present_bit:
+            bit_vector = np.ones(int(bit_duration)) * present_bit
 
-        elif bit > previous_bit: #rising
+        elif present_bit > previous_bit: #rising
+            # TODO this section can be replaced by the pythonic way of indexing - see add_feed_forward_equalizer function
             for i in range(0, bit_duration):
                 if i < n_rise:
                     bit_vector[i] = j*inc_rate
                     j += 1
                 else:
-                    bit_vector[i] = bit
+                    bit_vector[i] = present_bit
 
-        elif bit < previous_bit: #falling
+        elif present_bit < previous_bit: #falling
+            #TODO this section can be replaced by the pythonic way of indexing - see add_feed_forward_equalizer function
             for i in range(0, bit_duration):
                 if i < n_fall:
                     bit_vector[i] = 1 - j*dec_rate
                     j += 1
                 else:
-                    bit_vector[i] = bit
+                    bit_vector[i] = present_bit
 
 
-        previous_bit = bit
+        previous_bit = present_bit
         j = 1
-        word = [*word, *bit_vector]
-        bit_vector = np.zeros(int(bit_duration))
+        sequence = [*sequence, *bit_vector]
 
-    return word
+    return sequence
 
 if __name__ == "__main__":
 
@@ -252,18 +265,18 @@ if __name__ == "__main__":
     BIT_DURATION = 20
     N_RISE = 0
     N_FALL = 0
-    word = generate_random_word(400, BIT_DURATION, N_RISE, N_FALL, False)
+    word = generate_bitstream(100, BIT_DURATION, N_RISE, N_FALL, False)
     plt.plot(word)
 
 
-    AMP_PRE = 0.2
-    AMP_POS = -AMP_PRE
-    DUR_PRE = 20
-    DUR_POS = 20
+    AMP_PRE = 0.4
+    AMP_POS = -0.2
+    DUR_PRE = 6
+    DUR_POS = 6
     tx_out = add_feed_forward_equalizer(word, AMP_PRE, AMP_POS, DUR_PRE, DUR_POS)
     plt.plot(tx_out)
 
-    tx_out = word
+    #tx_out = word
 
     NOISE_LEVEL = 0.2
     SKEW_LEVEL = BIT_DURATION/8
