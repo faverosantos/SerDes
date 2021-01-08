@@ -193,7 +193,7 @@ def generate_bitstream(sequence_size, bit_duration_samples, is_random):
 
     elif is_random is True:
         # numpy.random.randint generates a sequence of size "size" and varying from 0 to 1
-        pattern = np.random.randint(2, size = sequence_size)
+        pattern = np.random.randint(2, size=sequence_size)
 
     # numpy.repeat oversamples by bit_duration_samples the "pattern" array
     stream = np.repeat(pattern, bit_duration_samples)
