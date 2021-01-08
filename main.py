@@ -9,7 +9,7 @@ from scipy.fft import fft, fftfreq
 class Defines:
 
     # Sampling frequency
-    FS = 100E9
+    FS = 100*10E9
 
     # Number of samples
     N_SAMPLES = 1000
@@ -60,7 +60,7 @@ def channel_model(vin, R, C, noise_level, skew_level):
     vout = np.convolve(ri, vin)
     vout = vout[0:len(vin)]
 
-    return vout
+    return [vout, ri]
 
 def generate_QAM_signal(carrier_frequency, depth, symbol_duration):
 
@@ -115,25 +115,25 @@ def generate_sine_wave(frequency, phase, offset, amplitude, size):
 
     return [x, y]
 
-def generate_eye_diagram(data, bit_duration):
+def generate_eye_diagram(data, BIT_DURATION_SAMPLES):
 
-    buffer = np.zeros((int(len(data)/bit_duration), bit_duration))
-    eye = np.zeros((int(len(data) / bit_duration), 3*bit_duration))
+    buffer = np.zeros((int(len(data)/BIT_DURATION_SAMPLES), BIT_DURATION_SAMPLES))
+    eye = np.zeros((int(len(data) / BIT_DURATION_SAMPLES), 3*BIT_DURATION_SAMPLES))
 
     j = 0
 
-    for i in range(0, len(data), bit_duration):
-        buffer[j, 0:bit_duration] = data[i:bit_duration+j*bit_duration]
-        bit_value = buffer[j, bit_duration-1] #np.ceil(np.average(buffer[j, 0:bit_duration]))
+    for i in range(0, len(data), BIT_DURATION_SAMPLES):
+        buffer[j, 0:BIT_DURATION_SAMPLES] = data[i:BIT_DURATION_SAMPLES+j*BIT_DURATION_SAMPLES]
+        bit_value = buffer[j, BIT_DURATION_SAMPLES-1] #np.ceil(np.average(buffer[j, 0:BIT_DURATION_SAMPLES]))
 
         if j < 2:
-            eye[j, 0 * bit_duration:1 * bit_duration] = buffer[j, 0:bit_duration]
-            eye[j, 1 * bit_duration:2 * bit_duration] = buffer[j, 0:bit_duration]
-            eye[j, 2 * bit_duration:3 * bit_duration] = buffer[j, 0:bit_duration]
+            eye[j, 0 * BIT_DURATION_SAMPLES:1 * BIT_DURATION_SAMPLES] = buffer[j, 0:BIT_DURATION_SAMPLES]
+            eye[j, 1 * BIT_DURATION_SAMPLES:2 * BIT_DURATION_SAMPLES] = buffer[j, 0:BIT_DURATION_SAMPLES]
+            eye[j, 2 * BIT_DURATION_SAMPLES:3 * BIT_DURATION_SAMPLES] = buffer[j, 0:BIT_DURATION_SAMPLES]
         else:
-            eye[j, 0 * bit_duration:1 * bit_duration] = buffer[j-2, 0:bit_duration]
-            eye[j, 1 * bit_duration:2 * bit_duration] = buffer[j-1, 0:bit_duration]
-            eye[j, 2 * bit_duration:3 * bit_duration] = buffer[j, 0:bit_duration]
+            eye[j, 0 * BIT_DURATION_SAMPLES:1 * BIT_DURATION_SAMPLES] = buffer[j-2, 0:BIT_DURATION_SAMPLES]
+            eye[j, 1 * BIT_DURATION_SAMPLES:2 * BIT_DURATION_SAMPLES] = buffer[j-1, 0:BIT_DURATION_SAMPLES]
+            eye[j, 2 * BIT_DURATION_SAMPLES:3 * BIT_DURATION_SAMPLES] = buffer[j, 0:BIT_DURATION_SAMPLES]
 
         j = j + 1
 
@@ -180,68 +180,25 @@ def add_feed_forward_equalizer(vin, amplitude_precursor, amplitude_poscursor, du
 
 
 # Generates a sequence of bits randomically or not.
-# Inputs: size (size of the stream), bit_duration (number of samples each bit lasts),
+# Inputs: size (size of the stream), BIT_DURATION_SAMPLES (number of samples each bit lasts),
 # n_rise (number of samples of the rising edge), n_fall (number of samples of the falling edge),
-# is_random (True to generate a random sequence, False to generate a repetitive 0/1 sequence).
-# Output: sequence (the generated sequence)
-def generate_bitstream(size, bit_duration, n_rise, n_fall, is_random):
+# is_random (True to generate a random sequence, False to generate a repetitive 1/0 sequence).
+# Output: stream (the generated sequence)
+def generate_bitstream(sequence_size, bit_duration_samples, is_random):
 
-    sequence = []
-    bit_vector = np.zeros(int(bit_duration))
+    if is_random is False:
+        # numpy.tiles repeats the sequence in the input array
+        sequence = [1, 0]
+        pattern = np.tile(sequence, int(sequence_size/2))
 
-    if n_rise == 0:
-        inc_rate = 1
-    else:
-        inc_rate = 1/n_rise
+    elif is_random is True:
+        # numpy.random.randint generates a sequence of size "size" and varying from 0 to 1
+        pattern = np.random.randint(2, size = sequence_size)
 
-    if n_rise == 0:
-        dec_rate = 1
-    else:
-        dec_rate = 1 / n_fall
+    # numpy.repeat oversamples by bit_duration_samples the "pattern" array
+    stream = np.repeat(pattern, bit_duration_samples)
 
-    previous_bit = 0
-    present_bit = 0
-    j = 1
-
-    fixed_pattern = np.zeros(int(size))
-    for i in range(len(fixed_pattern)):
-        fixed_pattern[i] = present_bit
-        present_bit = not present_bit
-
-    for k in range(size):
-
-        if is_random is True:
-            present_bit = random.randint(2)
-        elif is_random is False:
-            present_bit = fixed_pattern[k]
-
-        if previous_bit == present_bit:
-            bit_vector = np.ones(int(bit_duration)) * present_bit
-
-        elif present_bit > previous_bit: #rising
-            # TODO this section can be replaced by the pythonic way of indexing - see add_feed_forward_equalizer function
-            for i in range(0, bit_duration):
-                if i < n_rise:
-                    bit_vector[i] = j*inc_rate
-                    j += 1
-                else:
-                    bit_vector[i] = present_bit
-
-        elif present_bit < previous_bit: #falling
-            #TODO this section can be replaced by the pythonic way of indexing - see add_feed_forward_equalizer function
-            for i in range(0, bit_duration):
-                if i < n_fall:
-                    bit_vector[i] = 1 - j*dec_rate
-                    j += 1
-                else:
-                    bit_vector[i] = present_bit
-
-
-        previous_bit = present_bit
-        j = 1
-        sequence = [*sequence, *bit_vector]
-
-    return sequence
+    return stream
 
 if __name__ == "__main__":
 
@@ -262,33 +219,38 @@ if __name__ == "__main__":
     #plt.plot(vin)
     #vout = channel_model(vin, 50, 10)
 
-    BIT_DURATION = 20
-    N_RISE = 0
-    N_FALL = 0
-    word = generate_bitstream(100, BIT_DURATION, N_RISE, N_FALL, False)
+    BIT_DURATION_SECONDS = 100E-12
+    BIT_DURATION_SAMPLES = int(BIT_DURATION_SECONDS*Defines.FS)
+    SEQUENCE_SIZE = 4
+    word = generate_bitstream(SEQUENCE_SIZE, BIT_DURATION_SAMPLES, False)
     plt.plot(word)
 
 
     AMP_PRE = 0.4
     AMP_POS = -0.2
-    DUR_PRE = 6
-    DUR_POS = 6
+    DUR_PRE = 8
+    DUR_POS = 8
     tx_out = add_feed_forward_equalizer(word, AMP_PRE, AMP_POS, DUR_PRE, DUR_POS)
     plt.plot(tx_out)
 
-    #tx_out = word
 
-    NOISE_LEVEL = 0.2
-    SKEW_LEVEL = BIT_DURATION/8
-    rx_in = channel_model(tx_out, 3, 1, NOISE_LEVEL, SKEW_LEVEL)
-    plt.plot(rx_in)
+    #NOISE_LEVEL = 0.2
+    #SKEW_LEVEL = BIT_DURATION_SAMPLES/8
+    #[rx_in, ri] = channel_model(tx_out, 1, 1, NOISE_LEVEL, SKEW_LEVEL)
+    #plt.plot(rx_in)
+    #plt.show()
+
+    #eye = generate_eye_diagram(rx_in, BIT_DURATION_SAMPLES)
+    #for i in range(0, len(eye)):
+    #    plt.plot(eye[i,:])
+    #plt.ylim(-0.3, 1.2)
+    #plt.show()
+
+    #[frequency, amplitude] = fft_of(ri)
+    #plt.semilogx(frequency, amplitude)
+
     plt.show()
 
-    eye = generate_eye_diagram(rx_in, BIT_DURATION)
-    for i in range(0, len(eye)):
-        plt.plot(eye[i,:])
-    plt.ylim(-0.3, 1.2)
-    plt.show()
 
 
 
