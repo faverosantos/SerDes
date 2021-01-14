@@ -1,0 +1,215 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lachaise Assignment
+% LaTeX Template
+% Version 1.0 (26/6/2018)
+%
+% This template originates from:
+% http://www.LaTeXTemplates.com
+%
+% Authors:
+% Marion Lachaise & François Févotte
+% Vel (vel@LaTeXTemplates.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\input{structure.tex} % Include the file specifying the document structure and custom commands
+
+%----------------------------------------------------------------------------------------
+%	ASSIGNMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{SerDes analog circuits description} % Title of the assignment
+
+\author{Fávero Santos\\ \texttt{favero.santos@gmail.com}} % Author name and email address
+
+\date{Revision 00 of \today} % University, school and/or department name(s) and a date
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\section{Introduction}
+
+\begin{info}[\itshape Employed notation:] % Information block
+	\begin{enumerate}[i]
+		\item A DC only voltage/current is represented by an italic uppercase letter(s) followed by italic uppercase subscript letter(s).
+		\subitem A DC voltage drop across the \textit{GATE} and \textit{SOURCE} of a transistor is represented by \textit{$V_{GS}$}.
+		\item An AC only voltage/current is represented by an italic lowercase letter(s) followed by italic lowercase subscript letter(s).
+		\subitem An AC voltage drop across the \textit{GATE} and \textit{SOURCE} of a transistor is represented by \textit{$v_{gs}$}.
+		\item A combined DC and AC voltage/current is represented by an italic uppercase letter(s) followed by italic lowercase subscript letter(s).
+		\subitem A combined DC and AC voltage drop across the \textit{GATE} and \textit{SOURCE} of a transistor is represented by \textit{$V_{gs}$}.
+	\end{enumerate}
+	An example of such notation is presented in Figure \ref{fig:NOTATIONR00}.
+\end{info}
+
+\begin{figure*}[!b]
+	\centering
+	\includegraphics[scale=0.5]{./imgs/NOTATIONR00.jpg}
+	\caption{Examples of the employed notation in this work.}
+	\label{fig:NOTATIONR00}
+\end{figure*}
+
+\section*{Analysis of an RC channel} % Unnumbered section
+
+\subsection{Transfer function}
+
+Consider the circuit
+
+\begin{info}[\itshape Netlist in terms of time of an RC circuit] \newline
+	R1 vin(t) vout(t) R \newline
+	C1 vout(t) gnd!(t) C
+\end{info}
+
+in which the a current i(t) is sourced in the vin(t) node and drained at gnd!
+
+Applying the Laplace transform, the circuit becomes
+
+\begin{info}[\itshape Netlist in terms of frequency of an RC circuit] \newline
+	R1 vin(s) vout(s) R \newline
+	C1 vout(s) gnd!(t) 1/sC
+\end{info}
+
+At node vout(s):
+
+\centerline{$ v_{out}(s) = i(s) \cdot 1/(s \cdot C)
+	$}
+\vspace{\baselineskip}
+
+\centerline{$ v_{in}(s) - v_{out}(s) = i(s) \cdot R
+	$}
+\vspace{\baselineskip}
+
+\centerline{$ v_{in}(s) - i(s) \cdot 1/(s \cdot C) = i(s) \cdot R
+	$}
+\vspace{\baselineskip}
+
+\centerline{$ v_{in}(s) = i(s) \cdot (R + 1/(s \cdot C))
+	$}
+\vspace{\baselineskip}
+
+Thus
+
+\centerline{$ \frac{v_{out}(s)}{v_{in}(s)} = H(s) = \frac{i(s) \cdot 1/(s \cdot C)}{i(s) \cdot (R + 1/(s \cdot C))}
+	$}
+\vspace{\baselineskip}
+
+\begin{question}[\itshape Transfer function for an RC circuit]
+\centerline{$ H(s) = \frac{\omega_{a}}{s + \omega_{a}}
+	$}
+\end{question}
+
+Where $\tau = R \cdot C $ and $\omega_{a} = 1/ \tau$.
+
+\subsection{Impulse response}
+
+Applying the inverse Laplace transform in the transfer function, it is obtained:
+
+\begin{question}[\itshape Impulse response for an RC circuit]
+\centerline{$ h(t) = \omega_{a} \cdot \exp(-t * \omega_{a})
+	$}
+\end{question}
+
+for t > 0.
+
+\subsection{Magnitude of the transfer function}
+
+\centerline{$ |H(s)| = |\frac{\omega_{a}}{s + \omega_{a}}|
+	$}
+\vspace{\baselineskip}
+
+\begin{question}[\itshape Magnitude of H(s)]
+\centerline{$ |H(s)| = \frac{\omega_{a}}{\sqrt{w^2 + \omega_{a}^2}}
+	$}
+\end{question}
+
+\subsection{Phase of the transfer function}
+
+\centerline{$ \theta(s) = \arctan{(\frac{\Im{H(s)}}{\Re{H(s)}})}
+	$}
+\vspace{\baselineskip}
+
+\centerline{$ H(s) = \frac{\omega_{a}}{i\cdot \omega + \omega_{a}} = \frac{\omega_{a} \cdot (-i \cdot \omega + \omega_{a})}{(i \cdot \omega + \omega_{a}) \cdot (-i \cdot \omega + \omega_{a})}
+	$}
+\vspace{\baselineskip}
+
+\centerline{$ H(s) = \frac{\omega_{a}^2 - i \cdot \omega \cdot \omega_{a}}{\omega^2 + \omega_{a}^2}
+	$}
+\vspace{\baselineskip}
+
+\centerline{$ \Re{H(s)} = \frac{\omega_{a}^2}{\omega^2 + \omega_{a}^2}
+	$}
+\vspace{\baselineskip}
+
+\centerline{$ \Im{H(s)} = \frac{-\omega \cdot \omega_{a}}{\omega^2 + \omega_{a}^2}
+	$}
+\vspace{\baselineskip}
+
+\begin{question}[\itshape Phase of H(s)]
+\centerline{$ \theta(s) = \arctan{(- \omega / \omega_{a})}
+	$}
+\end{question}
+
+\subsection{Quantization of the model}
+
+Considering that $\omega_{a} = \omega_{d} / FS$, where FS is the sampling frequency, the quantized model is:
+
+\begin{question}[\itshape Transfer function for an RC circuit]
+	\centerline{$ H[m] = \frac{\omega_{d} / FS}{s + \omega_{d} / FS}
+		$}
+\end{question}
+Where m is a discrete frequency vector.
+
+\begin{question}[\itshape Impulse response for an RC circuit]
+	\centerline{$ h[n] = (\omega_{d} / FS) \cdot \exp(-t * \omega_{d} / FS)
+		$}
+\end{question}
+Where n is a discrete time vector.
+
+\begin{question}[\itshape Magnitude of H(s)]
+	\centerline{$ |H[m]| = \frac{\omega_{d} / FS}{\sqrt{w^2 + \omega_{d} / FS^2}}
+		$}
+\end{question}
+
+\begin{question}[\itshape Phase of H(s)]
+	\centerline{$ \theta(s) = \arctan{(- \omega / \omega_{d} / FS)}
+		$}
+\end{question}
+
+\section{Example code}
+
+An example code for such study can be found at: https://github.com/faverosantos/SerDes
+
+%----------------------------------------------------------------------------------------
+
+% References
+\begin{thebibliography}{9}
+	%\bibitem{techgurukula} 
+	%\url{https://www.youtube.com/watch?v=bSlPaSw8pDw}
+	
+	%\bibitem{pornpromlikit}
+	%file:///D:/Doutorado/2019\_Qualificação/Papers/Pornpromlikit\_2010.pdf
+	
+	%\bibitem{taylor} 
+	%\url{https://math.libretexts.org/Bookshelves/Calculus/Supplemental_Modules_(Calculus)/Multivariable_Calculus/3\%3A_Topics_in_Partial_Derivatives/Taylor__Polynomials_of_Functions_of_Two_Variables}
+	
+	%\bibitem{sedra} 
+	%Sedra, A. S. and Smith, K. C in "Microelectronics" 4th edition.	
+\end{thebibliography}
+%----------------------------------------------------------------------------------------
+
+\end{document}
