@@ -11,6 +11,9 @@ class Defines:
     # Sampling frequency
     FS = 100*10E9
 
+    # Sampling period
+    TS = 1/FS
+
     # Number of samples
     N_SAMPLES = 1000
 
@@ -54,37 +57,37 @@ def channel_model(vin, tau, noise_level, skew_level, describe_channel):
         for i in range(len(vin)):
             vin[i] += np.random.uniform(-noise_level, noise_level)
 
-    t = np.arange(1, (len(vin) + 1))
 
-    ri = (1/(tau*Defines.FS)) * np.exp(- t / (tau*Defines.FS))
-    vout = np.convolve(ri, vin)
+    # Generate a sequence in discrete time
+    n = np.arange(1, (len(vin) + 1))
+
+    # Analog omega
+    wa = 1 / tau
+
+    # Sampled omega
+    wd = wa / Defines.FS
+
+    # Impulse response
+    h_t = wd * np.exp(- n * wd)
+
+    # Convolve impulse response of the channel to the input signal
+    vout = np.convolve(h_t, vin)
     vout = vout[0:len(vin)]
 
-    w = 10**np.arange(-1, 15, 0.1)
-    alfa = 1/tau
     if describe_channel is True:
-        my_complex = alfa + 1j*w
-        tf = alfa/my_complex
-        mag = abs(tf)
-        phase = np.arctan(tf.imag/tf.real)
-        phase = rf.rad_to_degree(phase)
 
-        #plt.figure()
-        #plt.semilogx(w, mag, label="magnitude")
-        #plt.legend(loc="upper left")
-        #plt.grid(True)
-        #plt.show()
+        # Describe a frequency sequence in terms of power of ten (log scale)
+        m = 10 ** np.arange(-1, 15, 0.1)
 
-        #plt.figure()
-        #plt.semilogx(w, phase, label="phase")
-        #plt.legend(loc="upper left")
-        #plt.grid(True)
-        #plt.show()
+        my_complex = 1j*m + wa
+        T_f = wa / my_complex
 
-        return [mag, phase, w, vout, ri]
+        mag = abs(T_f)
+        phase = rf.rad_to_degree(np.arctan(T_f.imag/T_f.real))
 
+        return [mag, phase, m, vout, T_f, h_t]
 
-    return [vout, ri]
+    return [vout, h_t]
 
 def generate_QAM_signal(carrier_frequency, depth, symbol_duration):
 
@@ -132,12 +135,15 @@ def generate_QAM_symbols(depth, symbol_duration):
 # Generates a sine wave
 # Inputs: frequency (Hz), phase (rad/s), offset (V), amplitude (V), size (amount of samples)
 def generate_sine_wave(frequency, phase, offset, amplitude, size):
-    w = 2 * np.pi * frequency
-    x = np.arange(size)
 
-    y = offset + amplitude*np.sin(w * x / Defines.FS + phase)
+    wa = 2 * np.pi * frequency
+    wd = wa / Defines.FS
 
-    return [x, y]
+    n = np.arange(size)
+
+    h_n = offset + amplitude*np.sin(wd * n + phase)
+
+    return [n, h_n]
 
 def generate_eye_diagram(data, BIT_DURATION_SAMPLES):
 
@@ -163,48 +169,45 @@ def generate_eye_diagram(data, BIT_DURATION_SAMPLES):
 
     return eye
 
-def continous_time_linear_equalizer(vin, rd, gm, rs, cs, describe_CTLE):
+def continous_time_linear_equalizer(vin, rd, gm, rs, cs, describe_CTLE, h_t_channel):
 
     #TODO add the c_band_stop capacitor, adjust the timing with Defines.FS
     c_band_stop = 1E-12
 
-    t = np.arange(1, (len(vin) + 1))
+    n = np.arange(1, (len(vin) + 1))
 
-    alfa = - gm * rd
-    tau = rs * cs * Defines.FS
-    a = 1/tau
-    beta = gm * rs / 2
-    b = (beta + 1)/tau
+    gain = - gm * rd
+    tau = rs * cs
+    wa = 1 / tau
+    wd = wa / Defines.FS
+    digitau = 1 / wd
+    degeneration_gain = gm * rs / 2
+    b = (degeneration_gain + 1)/wd
 
-    ri = alfa * ((a - b)*np.exp(-b*t/1))
+    h_t_ctle = gain * ((digitau - b) * np.exp(-b * n))
 
-    vout = np.convolve(ri, vin)
+    #TODO Understand better this relation
+    h_t = h_t_channel + h_t_ctle
+
+    vout = np.convolve(h_t, vin)
     vout = vout[0:len(vin)]
 
-    w = 10 ** np.arange(-1, 15, 0.1)
-    alfa = -gm * rd
-    tau = rs * cs * Defines.FS
-    beta = gm * rs / 2
     if describe_CTLE is True:
-        my_complex = 1 + 1j * w * tau
-        tf = alfa / (1 + beta*(1/my_complex))
+
+        # Describe a sequence in the discrete frequencies
+        m = 10 ** np.arange(-1, 15, 0.1)
+
+        my_complex = 1 + 1j * m * tau
+
+        tf = gain / (1 + degeneration_gain*(1/my_complex))
         mag = abs(tf)
+
         phase = np.arctan(tf.imag / tf.real)
         phase = rf.rad_to_degree(phase)
 
-        #plt.semilogx(w, mag, label="mag")
-        #plt.legend(loc="upper left")
-        #plt.grid(True)
-        #plt.show()
+        return [mag, phase, m, vout, h_t_ctle]
 
-        #plt.semilogx(w, phase, label="phase")
-        #plt.legend(loc="upper left")
-        #plt.grid(True)
-        #plt.show()
-
-        return [mag, phase, w, vout, ri]
-
-    return [vout, ri]
+    return [vout, h_t_ctle]
 
 def feed_forward_equalizer(vin, amplitude_precursor, amplitude_poscursor, duration_precursor, duration_poscursor):
 
@@ -260,34 +263,34 @@ if __name__ == "__main__":
     carrier_frequency = 2.4E9
     symbol_duration = 3.6/(1E6)
 
-    BIT_DURATION_SECONDS = 100E-12 #100E-12
+    BIT_DURATION_SECONDS = 50E-12 #100E-12
     BW = 1/BIT_DURATION_SECONDS
     print(str(BW/1E9) + " GHz")
     BIT_DURATION_SAMPLES = int(BIT_DURATION_SECONDS*Defines.FS)
-    SEQUENCE_SIZE = 4
-    sequence = generate_bitstream(SEQUENCE_SIZE, BIT_DURATION_SAMPLES, False)
+    SEQUENCE_SIZE = 100
+    sequence = generate_bitstream(SEQUENCE_SIZE, BIT_DURATION_SAMPLES, True)
     plt.figure()
     plt.plot(sequence, label="sequence")
 
     AMP_PRE = 0.3
-    AMP_POS = -AMP_PRE
-    DUR_PRE = 8
-    DUR_POS = 8
+    AMP_POS = -0.2
+    DUR_PRE = int(BIT_DURATION_SAMPLES/3)
+    DUR_POS = int(BIT_DURATION_SAMPLES/3)
     tx_out = feed_forward_equalizer(sequence, AMP_PRE, AMP_POS, DUR_PRE, DUR_POS)
-    plt.plot(tx_out, label="tx_out")
+    plt.plot(tx_out, label="sequence + FFE")
     plt.legend(loc="lower right")
     plt.title("TX OUT data (with and without FFE)")
     plt.show(block=False)
 
-    NOISE_LEVEL = 0.3
-    SKEW_LEVEL = int(BIT_DURATION_SAMPLES/8)
+    NOISE_LEVEL = 0.05
+    SKEW_LEVEL = int(BIT_DURATION_SAMPLES/5)
     TAU = 4E-11
     DESCRIBE_MODEL = True
 
     if DESCRIBE_MODEL is True:
-        [magc, phase, w, rx_in, ri] = channel_model(tx_out, TAU, NOISE_LEVEL, SKEW_LEVEL, DESCRIBE_MODEL)
+        [magc, phase, w, rx_in, T_f_c, h_t_c] = channel_model(tx_out, TAU, NOISE_LEVEL, SKEW_LEVEL, DESCRIBE_MODEL)
     else:
-        [rx_in, ri] = channel_model(tx_out, TAU, NOISE_LEVEL, SKEW_LEVEL, DESCRIBE_MODEL)
+        [rx_in, h_t_c] = channel_model(tx_out, TAU, NOISE_LEVEL, SKEW_LEVEL, DESCRIBE_MODEL)
 
     plt.figure()
     plt.plot(rx_in, label="rx_in")
@@ -295,16 +298,25 @@ if __name__ == "__main__":
     plt.title("RX IN channel only")
     plt.show(block=False)
 
-    RD = 100
-    GM = 0.6
-    RS = 10
-    CS = 5E-12
+    RD = 2
+    GM = 0.5
+    RS = 8
+    CS = 5E-11#5E-12
 
     DESCRIBE_MODEL = True
     if DESCRIBE_MODEL is True:
-        [magct, phase, w, eq_out, ri] = continous_time_linear_equalizer(tx_out, RD, GM, RS, CS, DESCRIBE_MODEL)
+        [magct, phase, w, eq_out, h_t_ctle] = continous_time_linear_equalizer(tx_out, RD, GM, RS, CS, DESCRIBE_MODEL,
+                                                                              h_t_c)
     else:
-        [eq_out, ri] = continous_time_linear_equalizer(tx_out, RD, GM, RS, CS, DESCRIBE_MODEL)
+        [eq_out, h_t_ctle] = continous_time_linear_equalizer(tx_out, RD, GM, RS, CS, DESCRIBE_MODEL, h_t_c)
+
+    plt.figure()
+    plt.plot(h_t_c, label="h_t_c")
+    plt.plot(h_t_ctle, label="h_t_ctle")
+    plt.plot(h_t_c + h_t_ctle, label="h_t_c + h_t_ctle")
+    plt.legend(loc="lower right")
+    plt.title("Impulse response")
+    plt.show(block=False)
 
     plt.figure()
     plt.plot(eq_out, label="eq_out")
@@ -313,7 +325,8 @@ if __name__ == "__main__":
     plt.show(block=False)
 
     plt.figure()
-    plt.semilogx(w, magct, label="channel + CTLE")
+    plt.semilogx(w, magct, label="CTLE")
+    plt.semilogx(w, magct + magc, label="CTLE + channel")
     plt.semilogx(w, magc, label="channel")
     plt.legend(loc="lower left")
     plt.title("Frequency responses")
@@ -337,21 +350,6 @@ if __name__ == "__main__":
 
     plt.show()
 
-
-
-    #
-    #plt.show()
-
-
-
-
-
-
-
-    #[frequency, amplitude] = fft_of(ri)
-    #plt.semilogx(frequency, amplitude)
-
-    #plt.show()
 
 
 

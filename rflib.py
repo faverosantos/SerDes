@@ -53,7 +53,6 @@ def rad_to_degree(rad):
     degree = rad * (180 / np.pi)
     return degree
 
-
 def polar_to_complex(mag, angle):
     if -2 * np.pi <= angle <= 2 * np.pi:
         x = mag * np.cos(angle)
