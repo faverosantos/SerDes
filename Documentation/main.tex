@@ -43,7 +43,9 @@
 %	INTRODUCTION
 %----------------------------------------------------------------------------------------
 
-\section{Introduction}
+\section*{Introduction}
+
+The netlists presented in this article can be seen as circuits if a netlist-to-schematic conversor (such as NetlistViewer - https://sourceforge.net/p/netlistviewer/wiki/Home/) is employed.
 
 \begin{info}[\itshape Employed notation:] % Information block
 	\begin{enumerate}[i]
@@ -64,25 +66,19 @@
 	\label{fig:NOTATIONR00}
 \end{figure*}
 
-\section*{Analysis of an RC channel} % Unnumbered section
+\section{Analysis of an RC channel} % Unnumbered section
 
 \subsection{Transfer function}
 
 Consider the circuit
 
-\begin{info}[\itshape Netlist in terms of time of an RC circuit] \newline
-	R1 vin(t) vout(t) R \newline
-	C1 vout(t) gnd!(t) C
-\end{info}
-
-in which the a current i(t) is sourced in the vin(t) node and drained at gnd!
-
-Applying the Laplace transform, the circuit becomes
-
-\begin{info}[\itshape Netlist in terms of frequency of an RC circuit] \newline
-	R1 vin(s) vout(s) R \newline
-	C1 vout(s) gnd!(t) 1/sC
-\end{info}
+\begin{file}[\itshape Netlist of an RC circuit]
+	
+.SUBCKT RCchannel vin vout 	\newline
+R1 vin vout R				\newline
+C1 vout gnd! C				\newline
+.ENDS
+\end{file}
 
 At node vout(s):
 
@@ -139,28 +135,28 @@ for t > 0.
 
 \subsection{Phase of the transfer function}
 
-\centerline{$ \theta(s) = \arctan{(\frac{\Im{H(s)}}{\Re{H(s)}})}
+\centerline{$ \theta(w) = \arctan{(\frac{\Im{H(w)}}{\Re{H(w)}})}
 	$}
 \vspace{\baselineskip}
 
-\centerline{$ H(s) = \frac{\omega_{a}}{i\cdot \omega + \omega_{a}} = \frac{\omega_{a} \cdot (-i \cdot \omega + \omega_{a})}{(i \cdot \omega + \omega_{a}) \cdot (-i \cdot \omega + \omega_{a})}
+\centerline{$ H(w) = \frac{\omega_{a}}{i\cdot \omega + \omega_{a}} = \frac{\omega_{a} \cdot (-i \cdot \omega + \omega_{a})}{(i \cdot \omega + \omega_{a}) \cdot (-i \cdot \omega + \omega_{a})}
 	$}
 \vspace{\baselineskip}
 
-\centerline{$ H(s) = \frac{\omega_{a}^2 - i \cdot \omega \cdot \omega_{a}}{\omega^2 + \omega_{a}^2}
+\centerline{$ H(w) = \frac{\omega_{a}^2 - i \cdot \omega \cdot \omega_{a}}{\omega^2 + \omega_{a}^2}
 	$}
 \vspace{\baselineskip}
 
-\centerline{$ \Re{H(s)} = \frac{\omega_{a}^2}{\omega^2 + \omega_{a}^2}
+\centerline{$ \Re{H(w)} = \frac{\omega_{a}^2}{\omega^2 + \omega_{a}^2}
 	$}
 \vspace{\baselineskip}
 
-\centerline{$ \Im{H(s)} = \frac{-\omega \cdot \omega_{a}}{\omega^2 + \omega_{a}^2}
+\centerline{$ \Im{H(w)} = \frac{-\omega \cdot \omega_{a}}{\omega^2 + \omega_{a}^2}
 	$}
 \vspace{\baselineskip}
 
-\begin{question}[\itshape Phase of H(s)]
-\centerline{$ \theta(s) = \arctan{(- \omega / \omega_{a})}
+\begin{question}[\itshape Phase of H(w)]
+\centerline{$ \theta(w) = \arctan{(- \omega / \omega_{a})}
 	$}
 \end{question}
 
@@ -175,19 +171,103 @@ Considering that $\omega_{a} = \omega_{d} / FS$, where FS is the sampling freque
 Where m is a discrete frequency vector.
 
 \begin{question}[\itshape Impulse response for an RC circuit]
-	\centerline{$ h[n] = (\omega_{d} / FS) \cdot \exp(-t * \omega_{d} / FS)
+	\centerline{$ h[n] = (\omega_{d} / FS) \cdot \exp(-n * (\omega_{d} / FS))
 		$}
 \end{question}
 Where n is a discrete time vector.
 
-\begin{question}[\itshape Magnitude of H(s)]
-	\centerline{$ |H[m]| = \frac{\omega_{d} / FS}{\sqrt{w^2 + \omega_{d} / FS^2}}
+\begin{question}[\itshape Magnitude of H(w)]
+	\centerline{$ |H[m]| = \frac{\omega_{d} / FS}{\sqrt{w^2 + (\omega_{d} / FS)^2}}
 		$}
 \end{question}
 
-\begin{question}[\itshape Phase of H(s)]
-	\centerline{$ \theta(s) = \arctan{(- \omega / \omega_{d} / FS)}
+\begin{question}[\itshape Phase of H(w)]
+	\centerline{$ \theta[m] = \arctan{(- \omega /(\omega_{d} / FS))}
 		$}
+\end{question}
+
+\section{Analysis of a constant time linear equalizer}
+
+\subsection{Transfer function}
+
+Consider the circuit
+
+\begin{file}[\itshape Netlist of a CTLE]
+
+.SUBCKT CTLE vinp vinn voutp voutn gnd! \newline
+R1 gnd! voutp RD						\newline
+M1 voutp vinp vs1 0 M1					\newline
+I1 vs1 gnd! I1							\newline
+R2 gnd! voutn RD						\newline
+M2 voutn vinn vs2 0 M2					\newline
+I2 vs2 gnd! I1							\newline
+R3 vs1 vs2 RS							\newline
+C1 vs1 vs2 CS							\newline
+.ENDS
+\end{file}
+
+Its transfer function is:
+
+\begin{question}[\itshape Transfer function for a CTLE circuit]
+	\centerline{$ H(s) = \frac{-g_m \cdot R_D \cdot (s + \omega_a)}{(s + \omega_a \cdot (\tau + h))}
+		$}
+\end{question}
+
+Where $\tau = RS \cdot CS$, $\omega_a = 1/\tau$, and $h = g_m \cdot RS / 2$.
+
+\subsection{Impulse response}
+
+\begin{question}[\itshape Transfer function for a CTLE circuit]
+	\centerline{$ h(t) = -g_m \cdot R_D \cdot \omega_a \cdot (1 - h - \tau) \cdot exp(-t \cdot \omega_a \cdot (h + \tau) )
+		$}
+\end{question}
+
+For t > 0.
+
+\subsection{Magnitude of the transfer function}
+
+\centerline{$ |H(w)| = \frac{g_m \cdot R_D \cdot \sqrt{w_a^2 + w^2}}{\sqrt{(w_a \cdot (\tau + h))^2 + \omega^2}}
+	$}
+\vspace{\baselineskip}
+
+\subsection{Phase of the transfer function}
+
+\centerline{$ \Re{H(w)} = \frac{g_m \cdot R_D \cdot (\omega^2 + \omega_a^2 \cdot (\tau + h))}{\omega^2 + \omega_a^2 \cdot (\tau + h)^2}
+	$}
+\vspace{\baselineskip}
+
+\centerline{$ \Im{H(w)} = \frac{gm \cdot R_D \cdot \omega \cdot \omega_a \cdot (\tau + h - 1)}{\omega^2 + \omega_a^2 \cdot (\tau + h)}
+	$}
+\vspace{\baselineskip}
+
+\begin{question}[\itshape Phase of H(w)]
+	\centerline{$ \theta(w) = \arctan{\frac{\omega \cdot \omega_a \cdot (\tau + h - 1)}{\omega^2 + \omega_a^2 \cdot (\tau + h)^2}}
+		$}
+\end{question}
+
+\subsection{Quantization of the model}
+
+Considering that $\omega_{a} = \omega_{d} / FS$, where FS is the sampling frequency, the quantized model is:
+
+\begin{question}[\itshape Transfer function for a CTLE circuit]
+	\centerline{$ H[m] = \frac{-g_m \cdot R_D \cdot (s + (\omega_d / FS))}{(s + (\omega_d / FS) \cdot (\tau + h))}
+		$}
+\end{question}
+
+\begin{question}[\itshape Transfer function for a CTLE circuit]
+	\centerline{$ h[n] = -g_m \cdot R_D \cdot (\omega_d / FS) \cdot (1 - h - \tau) \cdot exp(-n \cdot (\omega_d / FS) \cdot (h + \tau) )
+		$}
+\end{question}
+
+\begin{question}[\itshape Magnitude of H(w)]
+\centerline{$ |H[m]| = \frac{g_m \cdot R_D \cdot \sqrt{(\omega_d / FS)^2 + \omega^2}}{\sqrt{((\omega_d / FS) \cdot (\tau + h))^2 + \omega^2}}
+	$}
+\vspace{\baselineskip}
+\end{question}
+
+\begin{question}[\itshape Phase of H(w)]
+	\centerline{$ \theta[m] = \arctan{\frac{\omega \cdot (\omega_d / FS) \cdot (\tau + h - 1)}{\omega^2 + (\omega_d / FS)^2 \cdot (\tau + h)^2}}
+	$}
 \end{question}
 
 \section{Example code}

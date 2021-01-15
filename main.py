@@ -270,7 +270,7 @@ if __name__ == "__main__":
     carrier_frequency = 2.4E9
     symbol_duration = 3.6/(1E6)
 
-    BIT_DURATION_SECONDS = 1000E-12 #100E-12
+    BIT_DURATION_SECONDS = 10E-12 #100E-12
     BW = 1/BIT_DURATION_SECONDS
     print(str(BW/1E9) + " GHz")
     BIT_DURATION_SAMPLES = int(BIT_DURATION_SECONDS*Defines.FS)
@@ -308,7 +308,7 @@ if __name__ == "__main__":
     RD = 4
     GM = 0.5
     RS = 0.1
-    CS = 5E-11#5E-12
+    CS = 5E-12#5E-12
 
     DESCRIBE_MODEL = True
     if DESCRIBE_MODEL is True:
@@ -353,9 +353,9 @@ if __name__ == "__main__":
         plt.plot(eye[i,:])
     #plt.ylim(-0.5, 1.5)
     plt.title("RX IN channel + CTLE ")
-    plt.show(block=False)
-
     plt.show()
+
+
 
 
 

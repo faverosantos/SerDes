@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7440 64-bit) (preloaded format=pdflatex 2020.5.26)  14 JAN 2021 11:09
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7440 64-bit) (preloaded format=pdflatex 2020.5.26)  15 JAN 2021 16:28
 entering extended mode
 **./main.tex
 (main.tex
@@ -1469,68 +1469,69 @@ LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/b/n' will be
 (Font)              scaled to size 14.4pt on input line 46.
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/b/n' will be
-(Font)              scaled to size 10.0pt on input line 48.
+(Font)              scaled to size 10.0pt on input line 50.
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/b/it' will be
-(Font)              scaled to size 10.0pt on input line 48.
+(Font)              scaled to size 10.0pt on input line 50.
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/it' will be
-(Font)              scaled to size 10.0pt on input line 51.
+(Font)              scaled to size 10.0pt on input line 53.
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/m/n' will be
-(Font)              scaled to size 7.0pt on input line 58.
+(Font)              scaled to size 7.0pt on input line 60.
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/b/n' will be
-(Font)              scaled to size 7.0pt on input line 58.
-<./imgs/NOTATIONR00.jpg, id=35, 353.10443pt x 290.05006pt>
+(Font)              scaled to size 7.0pt on input line 60.
+<./imgs/NOTATIONR00.jpg, id=59, 353.10443pt x 290.05006pt>
 File: ./imgs/NOTATIONR00.jpg Graphic file (type jpg)
 <use ./imgs/NOTATIONR00.jpg>
-Package pdftex.def Info: ./imgs/NOTATIONR00.jpg  used on input line 62.
+Package pdftex.def Info: ./imgs/NOTATIONR00.jpg  used on input line 64.
 (pdftex.def)             Requested size: 176.55177pt x 145.02467pt.
 LaTeX Font Info:    Font shape `T1/XCharter-TLF/b/n' will be
-(Font)              scaled to size 12.0pt on input line 69.
+(Font)              scaled to size 12.0pt on input line 71.
  [1
 
 {C:/Users/FaveroSantos/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map} <./im
-gs/NOTATIONR00.jpg>] [2]
+gs/NOTATIONR00.jpg>] [2] [3] [4]
 
-LaTeX Warning: Empty `thebibliography' environment on input line 212.
+LaTeX Warning: Empty `thebibliography' environment on input line 292.
 
-[3]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 215.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 215.
+[5]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 295.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 295.
  (main.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 215.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 215.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 295.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 295.
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 108BA47BA044B6AFDA99C169D5FEDAB7;461.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 215.
+(rerunfilecheck)             Checksum: F3F7937ACD4F610D072292390BD33769;924.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 295.
  ) 
 Here is how much of TeX's memory you used:
- 22867 strings out of 480761
- 427354 string characters out of 2890594
- 686376 words of memory out of 3000000
- 38384 multiletter control sequences out of 15000+200000
- 611230 words of font info for 77 fonts, out of 3000000 for 9000
+ 22905 strings out of 480761
+ 428006 string characters out of 2890594
+ 687463 words of memory out of 3000000
+ 38412 multiletter control sequences out of 15000+200000
+ 611858 words of font info for 79 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  76i,10n,74p,1020b,1061s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/xcha
-rter/xch_uy5hgr.enc} <C:\Users\FaveroSantos\AppData\Local\MiKTeX\2.9\fonts/pk/l
-jfour/jknappen/ec/dpi600\ectt1200.pk><C:/Users/FaveroSantos/AppData/Local/Progr
-ams/MiKTeX 2.9/fonts/type1/public/xcharter/XCharter-Bold.pfb><C:/Users/FaveroSa
-ntos/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/xcharter/XCharter-Bol
-dItalic.pfb><C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fonts/type
-1/public/xcharter/XCharter-Italic.pfb><C:/Users/FaveroSantos/AppData/Local/Prog
-rams/MiKTeX 2.9/fonts/type1/public/xcharter/XCharter-Roman.pfb><C:/Users/Favero
-Santos/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.
-pfb><C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public
-/amsfonts/cm/cmmi5.pfb><C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9
-/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/FaveroSantos/AppData/Local/
-Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/FaveroSa
-ntos/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr5.pfb>
-<C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/ams
-fonts/cm/cmr7.pfb><C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/font
-s/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/FaveroSantos/AppData/Local/Prog
-rams/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
-Output written on main.pdf (3 pages, 322617 bytes).
+ <C:\Users\FaveroSantos\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/
+dpi600\ecit1000.pk>{C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fon
+ts/enc/dvips/xcharter/xch_uy5hgr.enc} <C:\Users\FaveroSantos\AppData\Local\MiKT
+eX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1200.pk><C:/Users/FaveroSantos/Ap
+pData/Local/Programs/MiKTeX 2.9/fonts/type1/public/xcharter/XCharter-Bold.pfb><
+C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/xcha
+rter/XCharter-BoldItalic.pfb><C:/Users/FaveroSantos/AppData/Local/Programs/MiKT
+eX 2.9/fonts/type1/public/xcharter/XCharter-Italic.pfb><C:/Users/FaveroSantos/A
+ppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/xcharter/XCharter-Roman.pfb
+><C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/am
+sfonts/cm/cmmi10.pfb><C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/f
+onts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Users/FaveroSantos/AppData/Local/Pr
+ograms/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/FaveroSant
+os/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><
+C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsf
+onts/cm/cmr5.pfb><C:/Users/FaveroSantos/AppData/Local/Programs/MiKTeX 2.9/fonts
+/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/FaveroSantos/AppData/Local/Program
+s/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/FaveroSantos/A
+ppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
+Output written on main.pdf (5 pages, 341215 bytes).
 PDF statistics:
- 131 PDF objects out of 1000 (max. 8388607)
- 17 named destinations out of 1000 (max. 500000)
- 74 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 187 PDF objects out of 1000 (max. 8388607)
+ 25 named destinations out of 1000 (max. 500000)
+ 122 words of extra memory for PDF output out of 10000 (max. 10000000)
 

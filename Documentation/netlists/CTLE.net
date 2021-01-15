@@ -1,0 +1,12 @@
+.SUBCKT CTLE vinp vinn voutp voutn
+
+R1 gnd! voutp RD
+M1 voutp vinp vs1 0 M1
+I1 vs1 gnd! I1
+R2 vs1 vs2 RS
+C1 vs1 vs2 CS
+R3 gnd! voutn RD
+I2 vs2 gnd! I1
+M2 voutn vinn vs2 0 M2
+
+.ENDS

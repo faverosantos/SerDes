@@ -1,0 +1,6 @@
+.SUBCKT RCchannel vin vout
+
+R1 vin vout R
+C1 vout gnd! C
+
+.ENDS
