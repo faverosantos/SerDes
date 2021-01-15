@@ -57,7 +57,6 @@ def channel_model(vin, tau, noise_level, skew_level, describe_channel):
         for i in range(len(vin)):
             vin[i] += np.random.uniform(-noise_level, noise_level)
 
-
     # Generate a sequence in discrete time
     n = np.arange(1, (len(vin) + 1))
 
@@ -181,10 +180,18 @@ def continous_time_linear_equalizer(vin, rd, gm, rs, cs, describe_CTLE, h_t_chan
     wa = 1 / tau
     wd = wa / Defines.FS
     digitau = 1 / wd
-    degeneration_gain = gm * rs / 2
-    b = (degeneration_gain + 1)/wd
+    deg_gain = gm * rs / 2
 
-    h_t_ctle = gain * ((digitau - b) * np.exp(-b * n))
+    h_t_ctle = gain*(wd*(1-deg_gain-digitau))*np.exp(-n*wd*(deg_gain+digitau))
+
+
+    #b = (degeneration_gain + 1)/wd
+
+    #h_t_ctle = gain * ((digitau - b) * np.exp(-b * n))
+
+    #plt.figure()
+    #plt.plot(h_t_ctle)
+    #plt.show()
 
     #TODO Understand better this relation
     h_t = h_t_channel + h_t_ctle
@@ -199,7 +206,7 @@ def continous_time_linear_equalizer(vin, rd, gm, rs, cs, describe_CTLE, h_t_chan
 
         my_complex = 1 + 1j * m * tau
 
-        tf = gain / (1 + degeneration_gain*(1/my_complex))
+        tf = gain / (1 + deg_gain*(1/my_complex))
         mag = abs(tf)
 
         phase = np.arctan(tf.imag / tf.real)
@@ -263,7 +270,7 @@ if __name__ == "__main__":
     carrier_frequency = 2.4E9
     symbol_duration = 3.6/(1E6)
 
-    BIT_DURATION_SECONDS = 50E-12 #100E-12
+    BIT_DURATION_SECONDS = 1000E-12 #100E-12
     BW = 1/BIT_DURATION_SECONDS
     print(str(BW/1E9) + " GHz")
     BIT_DURATION_SAMPLES = int(BIT_DURATION_SECONDS*Defines.FS)
@@ -282,7 +289,7 @@ if __name__ == "__main__":
     plt.title("TX OUT data (with and without FFE)")
     plt.show(block=False)
 
-    NOISE_LEVEL = 0.05
+    NOISE_LEVEL = 0.2
     SKEW_LEVEL = int(BIT_DURATION_SAMPLES/5)
     TAU = 4E-11
     DESCRIBE_MODEL = True
@@ -298,9 +305,9 @@ if __name__ == "__main__":
     plt.title("RX IN channel only")
     plt.show(block=False)
 
-    RD = 2
+    RD = 4
     GM = 0.5
-    RS = 8
+    RS = 0.1
     CS = 5E-11#5E-12
 
     DESCRIBE_MODEL = True
